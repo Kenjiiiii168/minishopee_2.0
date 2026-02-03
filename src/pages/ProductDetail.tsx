@@ -8,11 +8,20 @@ import { ShoppingCart, Star, MapPin, ArrowLeft, Store } from 'lucide-react';
 export const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { products } = useProducts();
+    const { products, loading } = useProducts();
     const { dispatch } = useCart();
     const { t } = useLanguage();
 
-    const product = products.find(p => String(p.id) === id);
+    const product = products.find(p => String(p.id) === String(id));
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-16 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                <p className="text-gray-500">กำลังโหลดข้อมูลสินค้า...</p>
+            </div>
+        );
+    }
 
     if (!product) {
         return (

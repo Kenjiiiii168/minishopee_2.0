@@ -12,7 +12,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 export const ProductList: React.FC = () => {
     const { t } = useLanguage();
-    const { products } = useProducts(); // Get products from context
+    const { products, loading } = useProducts(); // Get products from context
     const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 45, seconds: 0 });
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [showAll, setShowAll] = useState(false);
@@ -212,14 +212,19 @@ export const ProductList: React.FC = () => {
                             </div>
 
                             {/* Products Grid */}
-                            {filteredAndSortedProducts.length > 0 ? (
+                            {loading ? (
+                                <div className="flex flex-col items-center justify-center py-16 w-full">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+                                    <p className="text-gray-500 font-medium">กำลังโหลดสินค้า...</p>
+                                </div>
+                            ) : filteredAndSortedProducts.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-500">
                                     {visibleProducts.map(product => (
                                         <ProductCard key={product.id} product={product} />
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-16">
+                                <div className="text-center py-16 w-full">
                                     <p className="text-gray-500 text-lg">ไม่พบสินค้าที่ตรงกับเงื่อนไข</p>
                                     <button
                                         onClick={handleClearFilters}

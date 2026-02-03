@@ -9,12 +9,14 @@ interface ProductContextType {
     addProduct: (product: Omit<Product, 'id'>) => void;
     updateProduct: (id: string | number, product: Partial<Product>) => void;
     deleteProduct: (id: string | number) => void;
+    loading: boolean;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [products, setProducts] = useState<Product[]>(defaultProducts);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
     const [userProducts, setUserProducts] = useState<Product[]>(() => {
         const stored = localStorage.getItem('userProducts');
         return stored ? JSON.parse(stored) : [];
@@ -23,51 +25,58 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // โหลดข้อมูลจาก PocketBase
     useEffect(() => {
         const fetchProducts = async () => {
+            setLoading(true);
             try {
                 const records = await pb.collection('products').getFullList();
 
                 if (records.length > 0) {
-                    // Map PocketBase records to our Product type
+                    console.log('PocketBase records found:', records.length);
                     const mappedProducts: Product[] = records.map(record => {
-                        // เลือกใช้รูปจากไฟล์ก่อน (ถ้ามี), ถ้าไม่มีใช้ image_url (ถ้ามี), ถ้าไม่มีใช้รูป default
                         let imageUrl = record.image_url;
                         if (record.image) {
                             imageUrl = pb.files.getUrl(record, record.image);
                         }
 
+                        // Debug log for first item to check image URL
+                        if (record.name === records[0].name) {
+                            console.log(`Product: ${record.name}, Image: ${imageUrl}`);
+                        }
+
                         return {
                             id: record.id,
-                            name: record.name,
-                            price: record.price,
+                            name: record.name || 'No Name',
+                            price: record.price || 0,
                             originalPrice: record.original_price,
                             discountPercent: record.discount_percent,
                             image: imageUrl || 'https://via.placeholder.com/500x500?text=No+Image',
-                            stock: record.stock,
-                            description: record.description,
-                            shopName: record.shop_name,
-                            shopRating: record.shop_rating,
-                            shopLocation: record.shop_location,
-                            category: record.category,
-                            brand: record.brand,
-                            isFlashSale: record.is_flash_sale,
-                            isPremium: record.is_premium,
-                            soldCount: record.sold_count,
-                            rating: record.rating,
-                            reviewCount: 0, // Default for now
+                            stock: record.stock ?? 0,
+                            description: record.description || "",
+                            shopName: record.shop_name || "MiniShopee Shop",
+                            shopRating: record.shop_rating || 5.0,
+                            shopLocation: record.shop_location || "Thailand",
+                            category: record.category || "General",
+                            brand: record.brand || "",
+                            isFlashSale: !!record.is_flash_sale,
+                            isPremium: !!record.is_premium,
+                            soldCount: record.sold_count || 0,
+                            rating: record.rating || 5.0,
+                            reviewCount: 0,
                             shipping: {
                                 fee: 0,
-                                location: record.shop_location
+                                location: record.shop_location || "Thailand"
                             }
                         };
                     });
                     setProducts(mappedProducts);
                 } else {
+                    console.log('No PocketBase records, using defaults');
                     setProducts(defaultProducts);
                 }
             } catch (error) {
                 console.error('Error fetching products from PocketBase:', error);
-                // ถ้าดึงไม่สำเร็จ ให้ใช้ข้อมูล Mock เหมือนเดิม
                 setProducts(defaultProducts);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -124,6 +133,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 addProduct,
                 updateProduct,
                 deleteProduct,
+                loading
             }}
         >
             {children}
