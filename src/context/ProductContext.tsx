@@ -7,8 +7,8 @@ interface ProductContextType {
     products: Product[];
     userProducts: Product[];
     addProduct: (product: Omit<Product, 'id'>) => void;
-    updateProduct: (id: number, product: Partial<Product>) => void;
-    deleteProduct: (id: number) => void;
+    updateProduct: (id: string | number, product: Partial<Product>) => void;
+    deleteProduct: (id: string | number) => void;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -28,32 +28,38 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
                 if (records.length > 0) {
                     // Map PocketBase records to our Product type
-                    const mappedProducts: Product[] = records.map(record => ({
-                        id: record.id as any, // PocketBase uses string IDs
-                        name: record.name,
-                        price: record.price,
-                        originalPrice: record.original_price,
-                        discountPercent: record.discount_percent,
-                        image: record.image
-                            ? pb.files.getUrl(record, record.image)
-                            : record.image_url,
-                        stock: record.stock,
-                        description: record.description,
-                        shopName: record.shop_name,
-                        shopRating: record.shop_rating,
-                        shopLocation: record.shop_location,
-                        category: record.category,
-                        brand: record.brand,
-                        isFlashSale: record.is_flash_sale,
-                        isPremium: record.is_premium,
-                        soldCount: record.sold_count,
-                        rating: record.rating,
-                        reviewCount: 0, // Default for now
-                        shipping: {
-                            fee: 0,
-                            location: record.shop_location
+                    const mappedProducts: Product[] = records.map(record => {
+                        // เลือกใช้รูปจากไฟล์ก่อน (ถ้ามี), ถ้าไม่มีใช้ image_url (ถ้ามี), ถ้าไม่มีใช้รูป default
+                        let imageUrl = record.image_url;
+                        if (record.image) {
+                            imageUrl = pb.files.getUrl(record, record.image);
                         }
-                    }));
+
+                        return {
+                            id: record.id,
+                            name: record.name,
+                            price: record.price,
+                            originalPrice: record.original_price,
+                            discountPercent: record.discount_percent,
+                            image: imageUrl || 'https://via.placeholder.com/500x500?text=No+Image',
+                            stock: record.stock,
+                            description: record.description,
+                            shopName: record.shop_name,
+                            shopRating: record.shop_rating,
+                            shopLocation: record.shop_location,
+                            category: record.category,
+                            brand: record.brand,
+                            isFlashSale: record.is_flash_sale,
+                            isPremium: record.is_premium,
+                            soldCount: record.sold_count,
+                            rating: record.rating,
+                            reviewCount: 0, // Default for now
+                            shipping: {
+                                fee: 0,
+                                location: record.shop_location
+                            }
+                        };
+                    });
                     setProducts(mappedProducts);
                 } else {
                     setProducts(defaultProducts);
@@ -87,7 +93,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const addProduct = (productData: Omit<Product, 'id'>) => {
         // Generate new ID (start from 1000 to avoid conflicts)
         const newId = userProducts.length > 0
-            ? Math.max(...userProducts.map(p => p.id)) + 1
+            ? Math.max(...userProducts.map(p => Number(p.id))) + 1
             : 1000;
 
         const newProduct: Product = {
@@ -98,7 +104,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setUserProducts(prev => [...prev, newProduct]);
     };
 
-    const updateProduct = (id: number, updates: Partial<Product>) => {
+    const updateProduct = (id: string | number, updates: Partial<Product>) => {
         setUserProducts(prev =>
             prev.map(product =>
                 product.id === id ? { ...product, ...updates } : product
@@ -106,7 +112,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         );
     };
 
-    const deleteProduct = (id: number) => {
+    const deleteProduct = (id: string | number) => {
         setUserProducts(prev => prev.filter(product => product.id !== id));
     };
 

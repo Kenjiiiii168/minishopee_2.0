@@ -1,5 +1,5 @@
 export interface Product {
-    id: number;
+    id: string | number;
     name: string;
     price: number;
     originalPrice?: number;
@@ -40,8 +40,8 @@ export interface CartState {
 
 export type CartAction =
     | { type: 'ADD_TO_CART'; payload: Product }
-    | { type: 'REMOVE_FROM_CART'; payload: number }
-    | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
+    | { type: 'REMOVE_FROM_CART'; payload: string | number }
+    | { type: 'UPDATE_QUANTITY'; payload: { id: string | number; quantity: number } }
     | { type: 'CLEAR_CART' };
 
 export interface CartContextType {

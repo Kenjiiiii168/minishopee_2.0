@@ -12,7 +12,7 @@ export const ProductDetail: React.FC = () => {
     const { dispatch } = useCart();
     const { t } = useLanguage();
 
-    const product = products.find(p => p.id === Number(id));
+    const product = products.find(p => String(p.id) === id);
 
     if (!product) {
         return (
