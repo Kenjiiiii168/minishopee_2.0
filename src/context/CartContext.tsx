@@ -86,7 +86,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Derived state calculations
     const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = subtotal > 0 ? 50 : 0; // Flat shipping rate 50 THB if cart not empty
+    const shipping = subtotal > 5000 || subtotal === 0 ? 0 : 50; // Free shipping over 5000 or empty cart
     const discount = subtotal > 5000 ? subtotal * 0.1 : 0; // 10% discount if over 5000
     const grandTotal = subtotal - discount + shipping;
 

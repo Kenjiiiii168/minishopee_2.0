@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, ShoppingBag, Globe, LogIn, LogOut, Store, Ticket } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Globe, LogIn, LogOut, Store, Ticket, Search } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -14,22 +14,56 @@ export const Navbar: React.FC = () => {
     const { collectedCoupons } = useCoupons();
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'login' | 'signup'>('login');
+    const [searchQuery, setSearchQuery] = useState('');
+    const navigate = useNavigate();
 
     const openModal = (mode: 'login' | 'signup') => {
         setModalMode(mode);
         setIsLoginOpen(true);
     };
 
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            setSearchQuery('');
+        }
+    };
+
     return (
         <>
             <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
-                <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-2">
-                    <Link to="/" className="flex items-center gap-2 text-2xl md:text-3xl font-black text-orange-600 shrink-0">
-                        <ShoppingBag className="w-7 h-7 md:w-8 md:h-8" strokeWidth={3} />
-                        <span className="hidden sm:inline">MiniShopee</span>
+                <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4 md:gap-8">
+                    {/* Logo Area */}
+                    <Link to="/" className="flex items-center gap-2 group shrink-0">
+                        <div className="relative">
+                            <div className="bg-orange-600 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 overflow-hidden border-2 border-orange-500">
+                                <img src="/favicon.png" alt="MiniShopee Logo" className="w-full h-full object-contain p-1" />
+                            </div>
+                        </div>
+                        <span className="text-2xl md:text-3xl font-black text-orange-600 tracking-tighter uppercase hidden sm:inline-block">MiniShopee</span>
                     </Link>
 
-                    <div className="flex items-center gap-2 md:gap-8 flex-1 justify-end">
+                    {/* Search Bar - Premium Style */}
+                    <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl lg:max-w-2xl">
+                        <div className="relative w-full group">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="ค้นหาสินค้าแบรนด์ดัง ราคาโดนใจ..."
+                                className="w-full pl-5 pr-14 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:outline-none transition-all duration-300 shadow-inner text-base font-medium placeholder:text-gray-400"
+                            />
+                            <button
+                                type="submit"
+                                className="absolute right-1 top-1 bottom-1 w-12 flex items-center justify-center bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors shadow-md"
+                            >
+                                <Search size={20} strokeWidth={3} />
+                            </button>
+                        </div>
+                    </form>
+
+                    <div className="flex items-center gap-2 md:gap-8 flex-1 sm:flex-initial justify-end">
                         {/* Seller Centre Link */}
                         <Link to="/seller" className="hidden lg:flex items-center gap-2 text-sm md:text-base font-bold text-gray-600 hover:text-orange-600 transition-colors border-r border-gray-200 pr-4">
                             <Store size={18} />
@@ -91,18 +125,18 @@ export const Navbar: React.FC = () => {
                         <div className="w-px h-6 md:h-8 bg-gray-200"></div>
 
                         {/* Vouchers Count */}
-                        <Link to="/vouchers" className="relative p-2 md:p-3 text-gray-700 hover:text-orange-600 cursor-pointer transition-all hover:scale-110 shrink-0">
-                            <Ticket className="w-7 h-7 md:w-8 md:h-8" strokeWidth={2.5} />
+                        <Link to="/vouchers" className="relative p-2 md:p-3 text-gray-700 hover:text-orange-600 cursor-pointer transition-all hover:scale-125 group shrink-0">
+                            <Ticket className="w-7 h-7 md:w-8 md:h-8 group-hover:rotate-12 transition-transform" strokeWidth={2.5} />
                             {collectedCoupons.length > 0 && (
-                                <span className="absolute top-0 right-0 md:top-1 md:right-1 bg-orange-600 text-white text-[10px] md:text-sm font-black w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-full border-2 border-white shadow-lg">
+                                <span className="absolute top-0 right-0 md:top-1 md:right-1 bg-orange-600 text-white text-[10px] md:text-sm font-black w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-full border-2 border-white shadow-lg animate-pulse">
                                     {collectedCoupons.length}
                                 </span>
                             )}
                         </Link>
 
                         {/* Cart */}
-                        <Link to="/cart" className="relative p-2 md:p-3 text-gray-700 hover:text-orange-600 transition-all hover:scale-110 shrink-0">
-                            <ShoppingCart className="w-7 h-7 md:w-8 md:h-8" strokeWidth={2.5} />
+                        <Link to="/cart" className="relative p-2 md:p-3 text-gray-700 hover:text-orange-600 transition-all hover:scale-125 group shrink-0">
+                            <ShoppingCart className="w-7 h-7 md:w-8 md:h-8 group-hover:-rotate-12 transition-transform" strokeWidth={2.5} />
                             {totalItems > 0 && (
                                 <span className="absolute -top-0 -right-0 md:top-1 md:right-1 bg-red-600 text-white text-[10px] md:text-sm font-black w-5 h-5 md:w-7 md:h-7 flex items-center justify-center rounded-full border-2 border-white shadow-lg">
                                     {totalItems}

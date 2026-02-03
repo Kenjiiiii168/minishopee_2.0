@@ -1,9 +1,8 @@
 import { TicketPercent } from 'lucide-react';
 import { useCoupons } from '../context/CouponContext';
-import { availableCoupons } from '../data/coupons';
 
 export const Coupons: React.FC = () => {
-    const { collectCoupon, isCollected } = useCoupons();
+    const { collectCoupon, isCollected, availableCoupons } = useCoupons();
 
     const coupons = availableCoupons;
 

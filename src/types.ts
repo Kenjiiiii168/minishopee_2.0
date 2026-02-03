@@ -2,13 +2,32 @@ export interface Product {
     id: number;
     name: string;
     price: number;
+    originalPrice?: number;
+    discountPercent?: number;
     image: string;
+    images?: string[];
     stock: number;
     description: string;
     shopName: string;
     shopRating: number;
     shopLocation: string;
     category: string;
+    rating: number;
+    reviewCount: number;
+    soldCount: number;
+    shipping: {
+        fee: number;
+        freeShippingMin?: number;
+        location: string;
+    };
+    variants?: {
+        colors?: string[];
+        sizes?: string[];
+    };
+    brand?: string;
+    isFlashSale?: boolean;
+    flashSaleStock?: number;
+    isPremium?: boolean;
 }
 
 export interface CartItem extends Product {

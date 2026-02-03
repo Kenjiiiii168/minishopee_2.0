@@ -1,11 +1,10 @@
 import React from 'react';
 import { useCoupons } from '../context/CouponContext';
-import { availableCoupons } from '../data/coupons';
-import { Ticket, ArrowLeft, ShoppingBag, Clock, Info } from 'lucide-react';
+import { Ticket, ArrowLeft, Clock, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Vouchers: React.FC = () => {
-    const { collectedCoupons } = useCoupons();
+    const { collectedCoupons, availableCoupons } = useCoupons();
 
     const myVouchers = availableCoupons.filter(c => collectedCoupons.includes(c.code));
 
@@ -33,7 +32,7 @@ export const Vouchers: React.FC = () => {
                             to="/"
                             className="inline-flex items-center gap-3 bg-orange-600 text-white px-10 py-4 rounded-2xl font-black text-xl shadow-xl hover:bg-orange-700 transition-all hover:scale-105"
                         >
-                            <ShoppingBag size={24} />
+                            <img src="/favicon.png" alt="MiniShopee" className="w-8 h-8 object-contain" />
                             Go Shopping
                         </Link>
                     </div>

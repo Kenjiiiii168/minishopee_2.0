@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { CartItem } from '../components/CartItem';
-import { ArrowLeft, ShoppingBag } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export const Cart: React.FC = () => {
     const { state, subtotal, discount, shipping, grandTotal, dispatch } = useCart();
@@ -10,7 +10,7 @@ export const Cart: React.FC = () => {
     if (state.items.length === 0) {
         return (
             <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center text-center">
-                <ShoppingBag size={64} className="text-gray-300 mb-4" />
+                <img src="/favicon.png" alt="Empty Cart" className="w-32 h-32 text-gray-300 mb-6 opacity-30 grayscale" />
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
                 <p className="text-gray-500 mb-8">Looks like you haven't added anything to your cart yet.</p>
                 <Link

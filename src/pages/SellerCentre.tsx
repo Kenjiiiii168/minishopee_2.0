@@ -1,132 +1,379 @@
 import React, { useState } from 'react';
-import { Store, TrendingUp, ShieldCheck, Globe, Rocket, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useProducts } from '../context/ProductContext';
+import { useAuth } from '../context/AuthContext';
+import type { Product } from '../types';
+import { Package, Plus, Trash2, Image as ImageIcon, DollarSign, Tag, Layers } from 'lucide-react';
 
 export const SellerCentre: React.FC = () => {
-    const [isRegistered, setIsRegistered] = useState(false);
+    const { user } = useAuth();
+    const { userProducts, addProduct, deleteProduct } = useProducts();
+    const [showForm, setShowForm] = useState(false);
 
-    const stats = [
-        { label: 'Active Sellers', value: '500K+', icon: <Store /> },
-        { label: 'Monthly Visitors', value: '10M+', icon: <TrendingUp /> },
-        { label: 'Safe Payments', value: '100%', icon: <ShieldCheck /> },
-        { label: 'Global Reach', value: '10+ Countries', icon: <Globe /> },
-    ];
+    // Form State
+    const [formData, setFormData] = useState({
+        name: '',
+        price: '',
+        originalPrice: '',
+        image: '',
+        stock: '',
+        description: '',
+        category: 'Electronics',
+        brand: '',
+        shopName: user?.name ? `${user.name}'s Shop` : 'My Shop',
+        shopRating: 4.5,
+        shopLocation: 'Bangkok',
+    });
 
-    const benefits = [
-        {
-            title: 'Low Commission Fees',
-            desc: 'Maximise your profits with our industry-leading low commission structural.',
-            icon: <TrendingUp size={32} />
-        },
-        {
-            title: 'Powerful Tools',
-            desc: 'Access advanced analytics and marketing tools to grow your business.',
-            icon: <Rocket size={32} />
-        },
-        {
-            title: 'Seller Support',
-            desc: 'Dedicated 24/7 support team to help you at every step of your journey.',
-            icon: <ShieldCheck size={32} />
+    const categories = ['Audio', 'Electronics', 'Gaming', 'Accessories', 'Mobile', 'Fashion', 'Home', 'Camera'];
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const price = parseFloat(formData.price);
+        const originalPrice = formData.originalPrice ? parseFloat(formData.originalPrice) : price * 1.3;
+        const discount = Math.round(((originalPrice - price) / originalPrice) * 100);
+
+        const newProduct: Omit<Product, 'id'> = {
+            name: formData.name,
+            price: price,
+            originalPrice: originalPrice,
+            discountPercent: discount > 0 ? discount : undefined,
+            image: formData.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80',
+            stock: parseInt(formData.stock) || 10,
+            description: formData.description,
+            category: formData.category,
+            brand: formData.brand || 'Generic',
+            shopName: formData.shopName,
+            shopRating: formData.shopRating,
+            shopLocation: formData.shopLocation,
+            rating: 4.5,
+            reviewCount: 0,
+            soldCount: 0,
+            shipping: {
+                fee: 0,
+                freeShippingMin: 299,
+                location: formData.shopLocation,
+            },
+        };
+
+        addProduct(newProduct);
+
+        // Reset form
+        setFormData({
+            name: '',
+            price: '',
+            originalPrice: '',
+            image: '',
+            stock: '',
+            description: '',
+            category: 'Electronics',
+            brand: '',
+            shopName: user?.name ? `${user.name}'s Shop` : 'My Shop',
+            shopRating: 4.5,
+            shopLocation: 'Bangkok',
+        });
+
+        setShowForm(false);
+    };
+
+    const handleDelete = (id: number) => {
+        if (confirm('ต้องการลบสินค้านี้ใช่หรือไม่?')) {
+            deleteProduct(id);
         }
-    ];
+    };
 
-    if (isRegistered) {
-        return (
-            <div className="min-h-[80vh] flex items-center justify-center p-4">
-                <div className="bg-white p-12 rounded-[2.5rem] shadow-2xl text-center max-w-xl border-4 border-orange-100">
-                    <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-8">
-                        <CheckCircle2 size={60} className="text-orange-600" />
+    return (
+        <div className="container mx-auto px-4 py-8">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-8 mb-8 text-white shadow-2xl">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-4xl font-bold mb-2">🏪 Seller Centre</h1>
+                        <p className="text-orange-100 text-lg">จัดการสินค้าของคุณ</p>
+                        <p className="text-sm text-orange-100 mt-1">ผู้ใช้: {user?.name || 'Guest'}</p>
                     </div>
-                    <h2 className="text-4xl font-black text-gray-900 mb-4 uppercase tracking-tighter">Welcome Aboard!</h2>
-                    <p className="text-xl text-gray-600 mb-10 font-medium">Your application is being processed. Our team will contact you within 24 hours to set up your store.</p>
                     <button
-                        onClick={() => window.location.href = '/'}
-                        className="bg-orange-600 text-white px-10 py-4 rounded-2xl font-black text-xl shadow-xl hover:bg-orange-700 transition-all hover:scale-105"
+                        onClick={() => setShowForm(!showForm)}
+                        className="bg-white text-orange-600 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-50 transition-all hover:scale-105 active:scale-95 shadow-lg"
                     >
-                        Return to Shopping
+                        <Plus size={20} />
+                        {showForm ? 'ปิดฟอร์ม' : 'เพิ่มสินค้า'}
                     </button>
                 </div>
             </div>
-        );
-    }
 
-    return (
-        <div className="bg-white">
-            {/* Hero Section */}
-            <section className="relative py-20 lg:py-32 overflow-hidden bg-slate-900 text-white">
-                <div className="absolute inset-0 opacity-20">
-                    <img
-                        src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1600"
-                        alt="Retail"
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-                <div className="container mx-auto px-4 relative z-10 text-center">
-                    <h1 className="text-5xl lg:text-8xl font-black mb-8 leading-tight tracking-tighter uppercase">
-                        Start Your Online <br />
-                        <span className="text-orange-500">Business Journey</span>
-                    </h1>
-                    <p className="text-xl lg:text-3xl text-gray-300 mb-12 max-w-3xl mx-auto font-bold">
-                        Join millions of sellers on MiniShopee and reach customers across the globe.
-                    </p>
-                    <button
-                        onClick={() => setIsRegistered(true)}
-                        className="bg-orange-600 text-white px-16 py-6 rounded-3xl font-black text-2xl lg:text-3xl shadow-2xl hover:bg-orange-700 hover:scale-105 active:scale-95 transition-all flex items-center gap-4 mx-auto"
-                    >
-                        Register as Seller
-                        <ArrowRight size={32} strokeWidth={3} />
-                    </button>
-                </div>
-            </section>
-
-            {/* Stats Section */}
-            <section className="py-20 bg-gray-50 border-y border-gray-100">
-                <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                        {stats.map((stat, i) => (
-                            <div key={i} className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all text-center border-2 border-transparent hover:border-orange-500 group">
-                                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-orange-50 transition-colors">
-                                    {React.cloneElement(stat.icon as React.ReactElement, { className: "w-8 h-8" } as any)}
-                                </div>
-                                <div className="text-3xl lg:text-4xl font-black text-gray-900 mb-2 truncate">{stat.value}</div>
-                                <div className="text-lg font-bold text-gray-500 uppercase tracking-tighter">{stat.label}</div>
-                            </div>
-                        ))}
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-gray-500 text-sm">สินค้าทั้งหมด</p>
+                            <p className="text-3xl font-bold text-gray-800">{userProducts.length}</p>
+                        </div>
+                        <Package className="text-blue-500" size={40} />
                     </div>
                 </div>
-            </section>
+                <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-gray-500 text-sm">มีสต็อก</p>
+                            <p className="text-3xl font-bold text-gray-800">
+                                {userProducts.filter(p => p.stock > 0).length}
+                            </p>
+                        </div>
+                        <Layers className="text-green-500" size={40} />
+                    </div>
+                </div>
+                <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-orange-500">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-gray-500 text-sm">หมดสต็อก</p>
+                            <p className="text-3xl font-bold text-gray-800">
+                                {userProducts.filter(p => p.stock === 0).length}
+                            </p>
+                        </div>
+                        <Tag className="text-orange-500" size={40} />
+                    </div>
+                </div>
+            </div>
 
-            {/* Benefits Section */}
-            <section className="py-24">
-                <div className="container mx-auto px-4">
-                    <h2 className="text-4xl lg:text-6xl font-black text-center mb-20 uppercase tracking-tighter">
-                        Why Sell on <span className="text-orange-600">MiniShopee?</span>
+            {/* Add Product Form */}
+            {showForm && (
+                <div className="bg-white rounded-2xl p-8 shadow-xl mb-8 border border-gray-100">
+                    <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                        <Plus className="text-orange-600" />
+                        เพิ่มสินค้าใหม่
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                        {benefits.map((benefit, i) => (
-                            <div key={i} className="flex flex-col items-center text-center group">
-                                <div className="w-24 h-24 bg-orange-600 text-white rounded-[2rem] flex items-center justify-center mb-8 shadow-xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                                    {benefit.icon}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Product Name */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    ชื่อสินค้า *
+                                </label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    required
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="เช่น Wireless Headphones"
+                                />
+                            </div>
+
+                            {/* Brand */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    แบรนด์
+                                </label>
+                                <input
+                                    type="text"
+                                    name="brand"
+                                    value={formData.brand}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="เช่น Sony"
+                                />
+                            </div>
+
+                            {/* Price */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    ราคา (฿) *
+                                </label>
+                                <div className="relative">
+                                    <DollarSign className="absolute left-3 top-3 text-gray-400" size={20} />
+                                    <input
+                                        type="number"
+                                        name="price"
+                                        value={formData.price}
+                                        onChange={handleInputChange}
+                                        required
+                                        min="0"
+                                        step="0.01"
+                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="990.00"
+                                    />
                                 </div>
-                                <h3 className="text-2xl font-black text-gray-900 mb-4 uppercase">{benefit.title}</h3>
-                                <p className="text-lg text-gray-600 font-medium leading-relaxed">{benefit.desc}</p>
+                            </div>
+
+                            {/* Original Price */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    ราคาเดิม (฿) <span className="text-gray-400 font-normal text-xs">(ถ้ามีส่วนลด)</span>
+                                </label>
+                                <div className="relative">
+                                    <Tag className="absolute left-3 top-3 text-gray-400" size={20} />
+                                    <input
+                                        type="number"
+                                        name="originalPrice"
+                                        value={formData.originalPrice}
+                                        onChange={handleInputChange}
+                                        min="0"
+                                        step="0.01"
+                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="1290.00"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Stock */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    จำนวนสต็อก *
+                                </label>
+                                <input
+                                    type="number"
+                                    name="stock"
+                                    value={formData.stock}
+                                    onChange={handleInputChange}
+                                    required
+                                    min="0"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="50"
+                                />
+                            </div>
+
+                            {/* Category */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    หมวดหมู่ *
+                                </label>
+                                <select
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleInputChange}
+                                    required
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                >
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Image URL */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    URL รูปภาพ
+                                </label>
+                                <div className="relative">
+                                    <ImageIcon className="absolute left-3 top-3 text-gray-400" size={20} />
+                                    <input
+                                        type="url"
+                                        name="image"
+                                        value={formData.image}
+                                        onChange={handleInputChange}
+                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="https://images.unsplash.com/..."
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">ใส่ URL รูปภาพจาก Unsplash หรือแหล่งอื่น (ถ้าไม่ใส่จะใช้รูปภาพเริ่มต้น)</p>
+                            </div>
+
+                            {/* Description */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    คำอธิบายสินค้า *
+                                </label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    required
+                                    rows={4}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                                    placeholder="อธิบายรายละเอียดสินค้า คุณสมบัติ จุดเด่น..."
+                                />
+                            </div>
+                        </div>
+
+                        {/* Submit Buttons */}
+                        <div className="flex gap-4 pt-4 border-t">
+                            <button
+                                type="submit"
+                                className="flex-1 bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition-all hover:scale-105 active:scale-95 shadow-lg"
+                            >
+                                ✅ เพิ่มสินค้า
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowForm(false)}
+                                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold hover:bg-gray-300 transition-all"
+                            >
+                                ยกเลิก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* Product List */}
+            <div className="bg-white rounded-2xl p-8 shadow-xl">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                    <Package className="text-orange-600" />
+                    สินค้าของฉัน ({userProducts.length})
+                </h2>
+
+                {userProducts.length === 0 ? (
+                    <div className="text-center py-16">
+                        <Package className="mx-auto text-gray-300 mb-4" size={80} />
+                        <p className="text-gray-500 text-lg mb-2">ยังไม่มีสินค้า</p>
+                        <p className="text-gray-400 text-sm">กดปุ่ม "เพิ่มสินค้า" เพื่อเริ่มต้น</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {userProducts.map(product => (
+                            <div
+                                key={product.id}
+                                className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all"
+                            >
+                                {/* Image */}
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-20 h-20 object-cover rounded-lg"
+                                />
+
+                                {/* Info */}
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-gray-800">{product.name}</h3>
+                                    <p className="text-sm text-gray-500 mb-1">{product.category} | {product.brand}</p>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-orange-600 font-bold">฿{product.price.toLocaleString()}</span>
+                                        {product.originalPrice && (
+                                            <span className="text-gray-400 text-sm line-through">
+                                                ฿{product.originalPrice.toLocaleString()}
+                                            </span>
+                                        )}
+                                        <span className={`text-sm px-2 py-1 rounded ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            สต็อก: {product.stock}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleDelete(product.id)}
+                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                        title="ลบสินค้า"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
-                </div>
-            </section>
-
-            {/* CTA Section */}
-            <section className="py-24 bg-orange-600 text-white">
-                <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-4xl lg:text-6xl font-black mb-10 uppercase tracking-tighter">Ready to become a top seller?</h2>
-                    <button
-                        onClick={() => setIsRegistered(true)}
-                        className="bg-white text-orange-600 px-16 py-6 rounded-3xl font-black text-2xl lg:text-3xl shadow-2xl hover:bg-orange-50 transition-all active:scale-95"
-                    >
-                        Start Selling Today
-                    </button>
-                </div>
-            </section>
+                )}
+            </div>
         </div>
     );
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { products } from '../data/products';
+import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ShoppingCart, Star, MapPin, ArrowLeft, Store } from 'lucide-react';
@@ -8,6 +8,7 @@ import { ShoppingCart, Star, MapPin, ArrowLeft, Store } from 'lucide-react';
 export const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { products } = useProducts();
     const { dispatch } = useCart();
     const { t } = useLanguage();
 
@@ -65,15 +66,18 @@ export const ProductDetail: React.FC = () => {
 
                         <div className="flex items-center gap-4 mb-6">
                             <div className="flex items-center text-orange-500">
-                                <span className="underline mr-1">4.9</span>
-                                <Star size={16} fill="currentColor" />
-                                <Star size={16} fill="currentColor" />
-                                <Star size={16} fill="currentColor" />
-                                <Star size={16} fill="currentColor" />
-                                <Star size={16} fill="currentColor" />
+                                <span className="underline mr-1">{product.rating || 0}</span>
+                                {[...Array(5)].map((_, i) => (
+                                    <Star
+                                        key={i}
+                                        size={16}
+                                        fill={i < Math.floor(product.rating || 0) ? "currentColor" : "none"}
+                                        className={i < Math.floor(product.rating || 0) ? "" : "text-gray-300"}
+                                    />
+                                ))}
                             </div>
                             <div className="w-px h-4 bg-gray-300"></div>
-                            <span className="text-gray-500">1.2k {t('product.sold')}</span>
+                            <span className="text-gray-500">{product.soldCount || 0} {t('product.sold')}</span>
                         </div>
 
                         <div className="bg-gray-50 p-4 rounded-lg mb-6">
@@ -84,7 +88,10 @@ export const ProductDetail: React.FC = () => {
                             <div className="text-gray-500">{t('common.stock')}</div>
                             <div>{product.stock} pieces</div>
                             <div className="text-gray-500">{t('cart.shipping')}</div>
-                            <div>฿50 (Free shipping on orders over ฿5,000)</div>
+                            <div>
+                                {product.shipping?.fee === 0 ? t('cart.freeShipping') : `฿${product.shipping?.fee || 50}`}
+                                {product.shipping?.freeShippingMin && ` (Free over ฿${product.shipping.freeShippingMin.toLocaleString()})`}
+                            </div>
                         </div>
 
                         <div className="flex gap-4 mt-auto">

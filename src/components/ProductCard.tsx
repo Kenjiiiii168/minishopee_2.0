@@ -2,7 +2,7 @@ import React from 'react';
 import type { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Star, MapPin, Truck, Zap, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
@@ -14,19 +14,52 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const { t } = useLanguage();
 
     const handleAddToCart = (e: React.MouseEvent) => {
-        e.preventDefault(); // Prevent navigation when clicking button
+        e.preventDefault();
+        e.stopPropagation();
         dispatch({ type: 'ADD_TO_CART', payload: product });
     };
 
     const isOutOfStock = product.stock === 0;
+    const isFreeShipping = product.shipping.fee === 0;
+
+    // Format sold count (e.g., 1200 -> "1.2k", 500 -> "500")
+    const formatSoldCount = (count: number) => {
+        if (count >= 10000) return `${(count / 1000).toFixed(1)}k`;
+        if (count >= 1000) return `${(count / 1000).toFixed(1)}k`;
+        return count.toString();
+    };
 
     return (
-        <Link to={`/product/${product.id}`} className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
-            <div className="relative h-48 overflow-hidden">
+        <Link to={`/product/${product.id}`} className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 group relative">
+            {/* Badges */}
+            <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                {product.isFlashSale && (
+                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 shadow-lg">
+                        <Zap size={12} fill="white" />
+                        FLASH SALE
+                    </div>
+                )}
+                {product.isPremium && (
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 shadow-lg">
+                        <Award size={12} />
+                        PREMIUM
+                    </div>
+                )}
+            </div>
+
+            {/* Discount Badge */}
+            {product.discountPercent && product.discountPercent > 0 && (
+                <div className="absolute top-2 right-2 z-10 bg-yellow-400 text-red-600 px-2 py-1 rounded-md text-sm font-black shadow-lg">
+                    -{product.discountPercent}%
+                </div>
+            )}
+
+            {/* Image Section */}
+            <div className="relative h-48 overflow-hidden bg-gray-50">
                 <img
                     src={product.image}
                     alt={product.name}
-                    className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${isOutOfStock ? 'opacity-50 grayscale' : ''}`}
+                    className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isOutOfStock ? 'opacity-50 grayscale' : ''}`}
                 />
                 {isOutOfStock && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/50">
@@ -34,36 +67,80 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </div>
                 )}
             </div>
-            <div className="p-5">
-                <h3 className="text-xl font-bold text-gray-900 line-clamp-2 min-h-[4rem] mb-3 group-hover:text-orange-600 transition-colors leading-relaxed">{product.name}</h3>
 
-                <div className="flex items-end justify-between mb-4">
-                    <div className="flex flex-col">
-                        <span className="text-3xl font-extrabold text-orange-600">฿{product.price.toLocaleString()}</span>
-                        <span className="text-lg text-gray-400 line-through font-medium">฿{(product.price * 1.2).toLocaleString()}</span>
+            {/* Content Section */}
+            <div className="p-4">
+                {/* Product Name */}
+                <h3 className="text-base font-semibold text-gray-900 line-clamp-2 min-h-[2.5rem] mb-2 group-hover:text-orange-600 transition-colors">
+                    {product.name}
+                </h3>
+
+                {/* Price Section */}
+                <div className="mb-3">
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-orange-600 text-2xl font-bold">
+                            ฿{product.price.toLocaleString()}
+                        </span>
+                        {product.originalPrice && (
+                            <span className="text-gray-400 text-sm line-through">
+                                ฿{product.originalPrice.toLocaleString()}
+                            </span>
+                        )}
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between text-base text-gray-600 mb-4 font-medium">
-                    {isOutOfStock ? (
-                        <span className="text-red-600 font-bold text-lg">{t('common.outOfStock')}</span>
-                    ) : (
-                        <span className="text-lg">{t('common.stock')}: {product.stock}</span>
-                    )}
+                {/* Rating & Sold */}
+                <div className="flex items-center gap-3 mb-3 text-sm">
+                    <div className="flex items-center gap-1">
+                        <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                        <span className="text-gray-700 font-medium">{product.rating}</span>
+                    </div>
+                    <div className="w-px h-3 bg-gray-300"></div>
+                    <span className="text-gray-500">
+                        ขายแล้ว {formatSoldCount(product.soldCount)}
+                    </span>
                 </div>
 
-                <button
-                    onClick={handleAddToCart}
-                    disabled={isOutOfStock}
-                    className={`mt-2 w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg font-bold text-xl transition-all transform hover:scale-[1.02]
-                        ${isOutOfStock
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-orange-600 text-white hover:bg-orange-700 active:bg-orange-800 shadow-lg hover:shadow-xl'}
-                        `}
-                >
-                    <ShoppingCart size={28} />
-                    {t('common.addToCart')}
-                </button>
+                {/* Shipping Info */}
+                <div className="flex items-center gap-2 mb-3 text-sm">
+                    <Truck size={14} className={isFreeShipping ? "text-green-600" : "text-gray-400"} />
+                    <span className={isFreeShipping ? "text-green-600 font-medium" : "text-gray-600"}>
+                        {isFreeShipping ? "ส่งฟรี" : `฿${product.shipping.fee}`}
+                    </span>
+                    <MapPin size={12} className="text-gray-400 ml-1" />
+                    <span className="text-gray-500 text-xs">{product.shipping.location}</span>
+                </div>
+
+                {/* Stock Status or Brand */}
+                {!isOutOfStock && product.brand && (
+                    <div className="text-xs text-gray-400 mb-3">
+                        {product.brand}
+                    </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        className="flex-1 py-2 px-3 border-2 border-orange-500 text-orange-500 rounded-lg font-medium text-sm hover:bg-orange-50 transition-colors"
+                    >
+                        ดูสินค้า
+                    </button>
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={isOutOfStock}
+                        className={`p-2 rounded-lg transition-all ${isOutOfStock
+                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                : 'bg-orange-600 text-white hover:bg-orange-700 hover:scale-105 active:scale-95'
+                            }`}
+                        title={t('common.addToCart')}
+                    >
+                        <ShoppingCart size={20} />
+                    </button>
+                </div>
             </div>
         </Link>
     );
