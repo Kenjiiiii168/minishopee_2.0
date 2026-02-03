@@ -9,8 +9,10 @@ import {
     Settings,
     TrendingUp,
     Clock,
-    CheckCircle
+    CheckCircle,
+    Database
 } from 'lucide-react';
+import { migrateProducts } from '../utils/migrate';
 
 export const AdminCentre: React.FC = () => {
     const { availableCoupons, addCoupon, deleteCoupon } = useCoupons();
@@ -50,8 +52,23 @@ export const AdminCentre: React.FC = () => {
                         <Settings size={20} className="animate-spin-slow" />
                         <span className="font-bold tracking-widest uppercase text-sm">System Management</span>
                     </div>
-                    <h1 className="text-4xl font-black mb-2 uppercase tracking-tight">Admin Centre</h1>
-                    <p className="text-gray-400 font-medium">ควบคุมและดูแลระบบ MiniShopee</p>
+                    <div className="flex justify-between items-end">
+                        <div>
+                            <h1 className="text-4xl font-black mb-2 uppercase tracking-tight">Admin Centre</h1>
+                            <p className="text-gray-400 font-medium">ควบคุมและดูแลระบบ MiniShopee</p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                if (window.confirm('คุณต้องการย้ายข้อมูลจากระบบเดิมเข้าสู่ PocketBase ใช่หรือไม่?')) {
+                                    await migrateProducts();
+                                }
+                            }}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-4 rounded-2xl font-black shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 mb-2"
+                        >
+                            <Database size={24} />
+                            Migrate Data
+                        </button>
+                    </div>
                 </div>
                 {/* Decorative background circles */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600 rounded-full -mr-20 -mt-20 blur-3xl opacity-20"></div>
