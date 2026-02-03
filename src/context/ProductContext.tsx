@@ -30,36 +30,42 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 const records = await pb.collection('products').getFullList();
 
                 if (records.length > 0) {
-                    console.log('PocketBase records found:', records.length);
+                    console.log(`[PocketBase] Found ${records.length} records. Mapping...`);
                     const mappedProducts: Product[] = records.map(record => {
-                        let imageUrl = record.image_url;
-                        if (record.image) {
+                        // --- IMAGE LOGIC: Extreme Fallback ---
+                        let imageUrl = record.image_url || '';
+
+                        // ถ้ามีไฟล์ใน PB ให้ใช้ไฟล์ก่อน
+                        if (record.image && record.image !== "") {
                             imageUrl = pb.files.getUrl(record, record.image);
                         }
 
-                        // Debug log for first item to check image URL
-                        if (record.name === records[0].name) {
-                            console.log(`Product: ${record.name}, Image: ${imageUrl}`);
+                        // ถ้ายังไม่มีรูปอีก ให้ใช้ placeholder
+                        if (!imageUrl) {
+                            imageUrl = 'https://via.placeholder.com/500x500?text=No+Image';
                         }
 
+                        // --- ID LOGIC ---
+                        const cleanId = String(record.id);
+
                         return {
-                            id: record.id,
-                            name: record.name || 'No Name',
-                            price: record.price || 0,
-                            originalPrice: record.original_price,
-                            discountPercent: record.discount_percent,
-                            image: imageUrl || 'https://via.placeholder.com/500x500?text=No+Image',
-                            stock: record.stock ?? 0,
+                            id: cleanId,
+                            name: record.name || 'Untitled Product',
+                            price: Number(record.price) || 0,
+                            originalPrice: record.original_price ? Number(record.original_price) : undefined,
+                            discountPercent: record.discount_percent ? Number(record.discount_percent) : undefined,
+                            image: imageUrl,
+                            stock: record.stock !== undefined ? Number(record.stock) : 0,
                             description: record.description || "",
-                            shopName: record.shop_name || "MiniShopee Shop",
-                            shopRating: record.shop_rating || 5.0,
+                            shopName: record.shop_name || "MiniShopee",
+                            shopRating: Number(record.shop_rating) || 5.0,
                             shopLocation: record.shop_location || "Thailand",
                             category: record.category || "General",
                             brand: record.brand || "",
                             isFlashSale: !!record.is_flash_sale,
                             isPremium: !!record.is_premium,
-                            soldCount: record.sold_count || 0,
-                            rating: record.rating || 5.0,
+                            soldCount: Number(record.sold_count) || 0,
+                            rating: Number(record.rating) || 5.0,
                             reviewCount: 0,
                             shipping: {
                                 fee: 0,
@@ -67,13 +73,15 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
                             }
                         };
                     });
+
+                    console.log('[PocketBase] Mapping complete. First item ID:', mappedProducts[0]?.id);
                     setProducts(mappedProducts);
                 } else {
-                    console.log('No PocketBase records, using defaults');
+                    console.warn('[PocketBase] Table exists but has 0 records. Falling back to defaults.');
                     setProducts(defaultProducts);
                 }
             } catch (error) {
-                console.error('Error fetching products from PocketBase:', error);
+                console.error('[PocketBase] Critical error during fetch:', error);
                 setProducts(defaultProducts);
             } finally {
                 setLoading(false);
